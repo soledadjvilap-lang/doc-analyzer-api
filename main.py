@@ -3,7 +3,7 @@ import base64
 import requests
 
 app = FastAPI()
-@app.post("/test")
+@app.get("/test")
 async def test():
     return {"status": "ok"}
 
