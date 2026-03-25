@@ -3,15 +3,20 @@ import base64
 import requests
 
 app = FastAPI()
+
+# Endpoint de prueba
 @app.get("/test")
 async def test():
     return {"status": "ok"}
 
+# Tu API Key de Gemini
 GEMINI_API_KEY = "TU_API_KEY"
 
+# Función para convertir archivos a base64
 def encode(file):
     return base64.b64encode(file.file.read()).decode("utf-8")
 
+# Endpoint principal
 @app.post("/analyze")
 async def analyze(
     invoice: UploadFile = File(...),
@@ -26,7 +31,7 @@ async def analyze(
         "contents": [
             {
                 "parts": [
-                    {"text": "Analiza estos documentos y genera comparación + email."},
+                    {"text": "Analiza estos documentos (invoice, packing list y purchase order). Detecta diferencias, errores y genera un resumen claro + sugerencia de email profesional."},
                     {"inline_data": {"mime_type": "application/pdf", "data": invoice_b64}},
                     {"inline_data": {"mime_type": "application/pdf", "data": packing_b64}},
                     {"inline_data": {"mime_type": "application/pdf", "data": po_b64}},
@@ -40,13 +45,14 @@ async def analyze(
         json=payload
     )
 
-data = response.json()
+    data = response.json()
 
-try:
-    text = data["candidates"][0]["content"]["parts"][0]["text"]
-except:
-    text = str(data)
+    # Manejo seguro de respuesta
+    try:
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+    except:
+        text = str(data)
 
-return {
-    "analysis": text
-}
+    return {
+        "analysis": text
+    }
