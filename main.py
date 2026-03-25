@@ -3,6 +3,9 @@ import base64
 import requests
 
 app = FastAPI()
+@app.post("/test")
+async def test():
+    return {"status": "ok"}
 
 GEMINI_API_KEY = "TU_API_KEY"
 
