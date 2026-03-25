@@ -40,4 +40,13 @@ async def analyze(
         json=payload
     )
 
-    return response.json()
+data = response.json()
+
+try:
+    text = data["candidates"][0]["content"]["parts"][0]["text"]
+except:
+    text = str(data)
+
+return {
+    "analysis": text
+}
