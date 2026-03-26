@@ -10,18 +10,18 @@ app = FastAPI()
 async def test():
     return {"status": "ok"}
 
-# 🔐 API Key configurada como variable de entorno
+# 🔐 API Key desde Render
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Validación
 if not GEMINI_API_KEY:
-    raise Exception("GEMINI_API_KEY no está configurada en el servidor")
+    raise Exception("GEMINI_API_KEY no está configurada en Render")
 
 # Función para convertir archivos a base64
 def encode(file):
     return base64.b64encode(file.file.read()).decode("utf-8")
 
-# Endpoint principal de análisis
+# Endpoint principal
 @app.post("/analyze")
 async def analyze(
     invoice: UploadFile = File(...),
@@ -32,8 +32,12 @@ async def analyze(
     packing_b64 = encode(packing)
     po_b64 = encode(po)
 
-    # Prompt optimizado para Especialista en Logística
-    prompt_text = """
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {
+                        "text": """
 Actúa como un Especialista en Logística Internacional y Comercio Exterior. Tu tarea es auditar un set de documentos (Factura, Orden de Compra y Packing List) para asegurar la coherencia en la cadena de despacho.
 
 ====================
@@ -86,14 +90,8 @@ REGLAS ESTRICTAS
 ====================
 - Tono técnico y profesional.
 - Máximo 180 palabras.
-- No inventar datos. Si falta la OC o algún dato, indícalo como ALERTA.
 """
-
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt_text},
+                    },
                     {
                         "inline_data": {
                             "mime_type": "application/pdf",
@@ -111,25 +109,24 @@ REGLAS ESTRICTAS
                             "mime_type": "application/pdf",
                             "data": po_b64
                         }
-                    }
+                    },
                 ]
             }
         ]
     }
 
-    # Llamada a la API de Gemini (modelo 1.5 Flash para mayor velocidad y eficiencia)
     response = requests.post(
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}",
         json=payload
     )
 
     data = response.json()
 
-    # Manejo de la respuesta
+    # Manejo seguro de respuesta
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception:
-        text = "Error al procesar la respuesta de la IA: " + str(data)
+    except:
+        text = str(data)
 
     return {
         "analysis": text
