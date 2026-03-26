@@ -38,15 +38,27 @@ async def analyze(
                 "parts": [
                     {
                         "text": """
-Analiza la Factura, OC y Packing List adjuntos. Entrega el análisis directamente bajo el siguiente formato, sin introducciones, saludos ni comentarios adicionales.
+Analiza la Factura, OC y Packing List adjuntos.
+
+Entrega el análisis EXACTAMENTE una sola vez, siguiendo estrictamente el formato indicado.
 
 ====================
 REGLAS DE VALIDACIÓN
 ====================
-1. FACTURAS CON CEROS: Considera coincidente el número de factura aunque varíen los ceros iniciales (ej: 004355 = 4355).
-2. UNIDADES VS BULTOS: Es correcto que la Factura indique unidades y el PL indique bultos/crates, siempre que la relación sea lógica.
-3. NO REPETICIÓN: No generes el asunto del correo dentro de los puntos de análisis. Hazlo solo al final.
-4. ESTILO: Respuesta técnica directa. Prohibido mencionar nombres de usuarios o frases de cortesía.
+
+1. FACTURAS CON CEROS:
+Considera coincidente el número de factura aunque varíen los ceros iniciales (ej: 004355 = 4355).
+
+2. UNIDADES VS BULTOS:
+Es correcto que la Factura indique unidades y el Packing List indique bultos (crates/pallets), siempre que la relación sea lógica.
+NO marcar error por esta diferencia.
+Si falta información (ej: unidades por bulto), indicar como observación.
+
+3. CONSISTENCIA GENERAL:
+Valida coherencia entre OC, SO, Invoice y PL.
+
+4. ESTILO:
+Respuesta técnica, directa, sin explicaciones innecesarias.
 
 ====================
 FORMATO DE RESPUESTA (ESTRICTO)
@@ -56,17 +68,27 @@ FORMATO DE RESPUESTA (ESTRICTO)
 - Orden de Compra (OC): [Número]. [Correcto/Error] + breve nota.
 - Número de SO (Sales Order): [Número]. [Correcto/Error] + breve nota.
 - Item: [Descripción y N° de Parte].
-- Certificado de Origen (COO): [Aplica/No aplica] + motivo (basado en Country of Origin del PL).
-- Número de Factura en PL: [Número]. Confirma si coincide con la factura (ignora ceros a la izquierda).
+- Certificado de Origen (COO): [Aplica/No aplica] + motivo.
+- Número de Factura en PL: [Número]. Validar coincidencia ignorando ceros iniciales.
 
 2. ESTADO DE REFERENCIAS PARA ASUNTO:
-(Verifica brevemente si Incoterm, Cliente, OC, SO, PO y PSlip están presentes y son consistentes en los documentos).
+(Validar brevemente Incoterm, Cliente, OC, SO, PO y PSlip)
 
 3. OBSERVACIONES:
-(Notas sobre peso, dimensiones o relación unidades/bultos. Si no hay, poner "Sin observaciones").
+(Notas relevantes. Si no hay, escribir: "Sin observaciones")
 
 ASUNTO EMAIL:
 [INCOTERM] || OP DROPSHIP || [CLIENTE] || OC [N°] || FLS SO [N°] || PO [N°] (SO [N°]) || PSlip [N°] || [DESCRIPCIÓN DEL ITEM]
+
+====================
+REGLAS ESTRICTAS DE SALIDA
+====================
+
+- GENERAR LA RESPUESTA UNA SOLA VEZ
+- NO repetir ningún bloque
+- NO duplicar contenido
+- TERMINAR inmediatamente después del ASUNTO EMAIL
+- NO agregar texto adicional antes ni después
 """
                     },
                     {
