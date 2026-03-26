@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 import base64
 import requests
+import os
 
 app = FastAPI()
 
@@ -9,8 +10,12 @@ app = FastAPI()
 async def test():
     return {"status": "ok"}
 
-# Tu API Key de Gemini
-GEMINI_API_KEY = "TU_API_KEY"
+# 🔐 API Key desde Render (variable de entorno)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# Validación (muy importante)
+if not GEMINI_API_KEY:
+    raise Exception("GEMINI_API_KEY no está configurada en Render")
 
 # Función para convertir archivos a base64
 def encode(file):
@@ -31,10 +36,27 @@ async def analyze(
         "contents": [
             {
                 "parts": [
-                    {"text": "Analiza estos documentos (invoice, packing list y purchase order). Detecta diferencias, errores y genera un resumen claro + sugerencia de email profesional."},
-                    {"inline_data": {"mime_type": "application/pdf", "data": invoice_b64}},
-                    {"inline_data": {"mime_type": "application/pdf", "data": packing_b64}},
-                    {"inline_data": {"mime_type": "application/pdf", "data": po_b64}},
+                    {
+                        "text": "Analiza estos documentos (invoice, packing list y purchase order). Detecta diferencias, errores y genera un resumen claro + sugerencia de email profesional."
+                    },
+                    {
+                        "inline_data": {
+                            "mime_type": "application/pdf",
+                            "data": invoice_b64
+                        }
+                    },
+                    {
+                        "inline_data": {
+                            "mime_type": "application/pdf",
+                            "data": packing_b64
+                        }
+                    },
+                    {
+                        "inline_data": {
+                            "mime_type": "application/pdf",
+                            "data": po_b64
+                        }
+                    },
                 ]
             }
         ]
