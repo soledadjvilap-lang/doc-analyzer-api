@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 import base64
 import requests
 import os
+import re
 
 app = FastAPI()
 
@@ -13,13 +14,34 @@ async def test():
 # 🔐 API Key desde Render
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Validación
 if not GEMINI_API_KEY:
     raise Exception("GEMINI_API_KEY no está configurada en Render")
 
-# Función para convertir archivos a base64
+# Convertir archivos a base64
 def encode(file):
     return base64.b64encode(file.file.read()).decode("utf-8")
+
+# Función para parsear respuesta
+def parse_response(text):
+    try:
+        revision = re.search(r"1\..*?COHERENCIA DOCUMENTAL:(.*?)(?=2\.)", text, re.S)
+        referencias = re.search(r"2\..*?ASUNTO:(.*?)(?=3\.)", text, re.S)
+        observaciones = re.search(r"3\..*?OBSERVACIONES:(.*?)(?=ASUNTO EMAIL:)", text, re.S)
+        asunto = re.search(r"ASUNTO EMAIL:(.*)", text, re.S)
+
+        return {
+            "revision": revision.group(1).strip() if revision else "",
+            "referencias": referencias.group(1).strip() if referencias else "",
+            "observaciones": observaciones.group(1).strip() if observaciones else "",
+            "asunto": asunto.group(1).strip() if asunto else ""
+        }
+    except:
+        return {
+            "revision": text,
+            "referencias": "",
+            "observaciones": "",
+            "asunto": ""
+        }
 
 # Endpoint principal
 @app.post("/analyze")
@@ -47,69 +69,52 @@ REGLAS DE VALIDACIÓN
 ====================
 
 1. FACTURAS CON CEROS:
-Considera coincidente el número de factura aunque varíen los ceros iniciales (ej: 004355 = 4355).
+Considera coincidente el número aunque tenga ceros iniciales distintos.
 
 2. UNIDADES VS BULTOS:
-Es correcto que la Factura indique unidades y el Packing List indique bultos (crates/pallets).
-NO marcar error por diferencia unidades vs bultos.
-Evaluar si la relación es lógica.
-Si falta información (ej: unidades por bulto), indicar como observación (NO error).
+Factura = unidades
+Packing List = bultos
+Esto NO es error si es lógico.
 
-3. CONSISTENCIA GENERAL:
-Valida coherencia entre OC, SO, Invoice y PL.
-
-4. ESTILO:
-Respuesta técnica, directa, sin explicaciones innecesarias.
+3. CONSISTENCIA:
+Validar coherencia entre OC, SO, Invoice y PL.
 
 ====================
-FORMATO DE RESPUESTA (ESTRICTO)
+FORMATO OBLIGATORIO
 ====================
 
 1. REVISIÓN DEL PACKING LIST (PL) Y COHERENCIA DOCUMENTAL:
-- Orden de Compra (OC): [Número]. [Correcto/Error] + breve nota.
-- Número de SO (Sales Order): [Número]. [Correcto/Error] + breve nota.
-- Item: [Descripción y N° de Parte].
-- Certificado de Origen (COO): [Aplica/No aplica] + motivo.
-- Número de Factura en PL: [Número]. Validar coincidencia ignorando ceros iniciales.
+- Orden de Compra (OC):
+- Número de SO (Sales Order):
+- Item:
+- Certificado de Origen (COO):
+- Número de Factura en PL:
 
 2. ESTADO DE REFERENCIAS PARA ASUNTO:
-(Validar brevemente Incoterm, Cliente, OC, SO, PO y PSlip)
+- Incoterm:
+- Cliente:
+- OC:
+- SO:
+- PO:
+- PSlip:
 
 3. OBSERVACIONES:
-(Notas relevantes. Si no hay, escribir: "Sin observaciones")
 
 ASUNTO EMAIL:
-[INCOTERM] || OP DROPSHIP || [CLIENTE] || OC [N°] || FLS SO [N°] || PO [N°] (SO [N°]) || PSlip [N°] || [DESCRIPCIÓN DEL ITEM]
+[texto]
 
 ====================
-REGLAS ESTRICTAS DE SALIDA
+REGLAS
 ====================
 
-- GENERAR LA RESPUESTA UNA SOLA VEZ
-- NO repetir ningún bloque
-- NO duplicar contenido
-- TERMINAR inmediatamente después del ASUNTO EMAIL
-- NO agregar texto adicional antes ni después
+- RESPUESTA SOLO UNA VEZ
+- NO repetir contenido
+- TERMINAR en ASUNTO EMAIL
 """
                     },
-                    {
-                        "inline_data": {
-                            "mime_type": "application/pdf",
-                            "data": invoice_b64
-                        }
-                    },
-                    {
-                        "inline_data": {
-                            "mime_type": "application/pdf",
-                            "data": packing_b64
-                        }
-                    },
-                    {
-                        "inline_data": {
-                            "mime_type": "application/pdf",
-                            "data": po_b64
-                        }
-                    },
+                    {"inline_data": {"mime_type": "application/pdf", "data": invoice_b64}},
+                    {"inline_data": {"mime_type": "application/pdf", "data": packing_b64}},
+                    {"inline_data": {"mime_type": "application/pdf", "data": po_b64}},
                 ]
             }
         ]
@@ -122,21 +127,11 @@ REGLAS ESTRICTAS DE SALIDA
 
     data = response.json()
 
-    # Manejo seguro de respuesta
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]
-
-        # 🔥 LIMPIEZA DE DUPLICADOS (CLAVE)
-        if text.count("1. REVISIÓN DEL PACKING LIST") > 1:
-            parts = text.split("1. REVISIÓN DEL PACKING LIST")
-            text = "1. REVISIÓN DEL PACKING LIST" + parts[1]
-
-        if text.count("ASUNTO EMAIL:") > 1:
-            text = text.split("ASUNTO EMAIL:")[0] + "ASUNTO EMAIL:" + text.split("ASUNTO EMAIL:")[1].split("\n")[0]
-
     except:
-        text = str(data)
+        return {"error": data}
 
-    return {
-        "analysis": text
-    }
+    parsed = parse_response(text)
+
+    return parsed
