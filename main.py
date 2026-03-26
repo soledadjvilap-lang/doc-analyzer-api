@@ -50,9 +50,10 @@ REGLAS DE VALIDACIÓN
 Considera coincidente el número de factura aunque varíen los ceros iniciales (ej: 004355 = 4355).
 
 2. UNIDADES VS BULTOS:
-Es correcto que la Factura indique unidades y el Packing List indique bultos (crates/pallets), siempre que la relación sea lógica.
-NO marcar error por esta diferencia.
-Si falta información (ej: unidades por bulto), indicar como observación.
+Es correcto que la Factura indique unidades y el Packing List indique bultos (crates/pallets).
+NO marcar error por diferencia unidades vs bultos.
+Evaluar si la relación es lógica.
+Si falta información (ej: unidades por bulto), indicar como observación (NO error).
 
 3. CONSISTENCIA GENERAL:
 Valida coherencia entre OC, SO, Invoice y PL.
@@ -124,6 +125,15 @@ REGLAS ESTRICTAS DE SALIDA
     # Manejo seguro de respuesta
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]
+
+        # 🔥 LIMPIEZA DE DUPLICADOS (CLAVE)
+        if text.count("1. REVISIÓN DEL PACKING LIST") > 1:
+            parts = text.split("1. REVISIÓN DEL PACKING LIST")
+            text = "1. REVISIÓN DEL PACKING LIST" + parts[1]
+
+        if text.count("ASUNTO EMAIL:") > 1:
+            text = text.split("ASUNTO EMAIL:")[0] + "ASUNTO EMAIL:" + text.split("ASUNTO EMAIL:")[1].split("\n")[0]
+
     except:
         text = str(data)
 
