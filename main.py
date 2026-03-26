@@ -38,37 +38,35 @@ async def analyze(
                 "parts": [
                     {
                         "text": """
-Analiza los documentos (Factura, OC y Packing List) y entrega una revisión directa. 
+Analiza la Factura, OC y Packing List adjuntos. Entrega el análisis directamente bajo el siguiente formato, sin introducciones, saludos ni comentarios adicionales.
 
 ====================
-REGLAS CRÍTICAS
+REGLAS DE VALIDACIÓN
 ====================
-1. NÚMEROS DE FACTURA: Considera que los números coinciden aunque varíen en ceros iniciales (ej: "004355" es igual a "4355"). NO lo marques como error.
-2. UNIDADES VS BULTOS: Es CORRECTO que la cantidad en Factura (unidades) sea distinta a la del PL (bultos/crates), siempre que la relación sea lógica.
-3. ESTILO: No te presentes como auditor ni des introducciones sobre tu rol. Usa el saludo: "Hola Soledad. He realizado el análisis de esta carpeta de documentos..."
+1. FACTURAS CON CEROS: Considera coincidente el número de factura aunque varíen los ceros iniciales (ej: 004355 = 4355).
+2. UNIDADES VS BULTOS: Es correcto que la Factura indique unidades y el PL indique bultos/crates, siempre que la relación sea lógica.
+3. NO REPETICIÓN: No generes el asunto del correo dentro de los puntos de análisis. Hazlo solo al final.
+4. ESTILO: Respuesta técnica directa. Prohibido mencionar nombres de usuarios o frases de cortesía.
 
 ====================
 FORMATO DE RESPUESTA (ESTRICTO)
 ====================
 
-Hola Soledad. He realizado el análisis de esta carpeta de documentos. Aquí tienes el detalle de la revisión:
-
 1. REVISIÓN DEL PACKING LIST (PL) Y COHERENCIA DOCUMENTAL:
-- Orden de Compra (OC): [Número]. [Estado: Correcto/Error] + breve nota.
-- Número de SO (Sales Order): [Número]. [Estado: Correcto/Error] + breve nota.
-- Item: Descripción del item y Número de Parte.
-- Certificado de Origen (COO): Indica si aplica o no según el "Country of Origin" del PL y justifica brevemente.
+- Orden de Compra (OC): [Número]. [Correcto/Error] + breve nota.
+- Número de SO (Sales Order): [Número]. [Correcto/Error] + breve nota.
+- Item: [Descripción y N° de Parte].
+- Certificado de Origen (COO): [Aplica/No aplica] + motivo (basado en Country of Origin del PL).
 - Número de Factura en PL: [Número]. Confirma si coincide con la factura (ignora ceros a la izquierda).
 
-2. VALIDACIÓN CONTRA EL ASUNTO:
-Compara la información de los documentos y genera el asunto EXACTAMENTE en este formato:
-[INCOTERM] || OP DROPSHIP || [CLIENTE] || OC [N°] || FLS SO [N°] || PO [N°] (SO [N°]) || PSlip [N°] || [DESCRIPCIÓN]
+2. ESTADO DE REFERENCIAS PARA ASUNTO:
+(Verifica brevemente si Incoterm, Cliente, OC, SO, PO y PSlip están presentes y son consistentes en los documentos).
 
 3. OBSERVACIONES:
-(Solo si hay discrepancias críticas o datos faltantes).
+(Notas sobre peso, dimensiones o relación unidades/bultos. Si no hay, poner "Sin observaciones").
 
 ASUNTO EMAIL:
-[Generar el asunto en una sola línea siguiendo el formato solicitado anteriormente]
+[INCOTERM] || OP DROPSHIP || [CLIENTE] || OC [N°] || FLS SO [N°] || PO [N°] (SO [N°]) || PSlip [N°] || [DESCRIPCIÓN DEL ITEM]
 """
                     },
                     {
