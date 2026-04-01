@@ -99,18 +99,31 @@ FORMATO OBLIGATORIO
 - PSlip:
 
 3. OBSERVACIONES:
-(Notas relevantes. Si no hay, escribir: "Sin observaciones")
+(Solo incluir hallazgos relevantes para la operación)
 
 FORMATO DE OBSERVACIONES (OBLIGATORIO):
 - Usa viñetas con símbolo "•"
-- Una idea por línea
 - Máximo 5 puntos
-- No usar párrafos largos
-- No repetir información
-- Frases cortas y claras
+- SOLO incluir inconsistencias, riesgos o validaciones críticas
+- NO incluir explicaciones obvias o lógica esperada (ej: unidades vs bultos)
+- NO incluir información redundante o de bajo valor operativo
+- Frases cortas y accionables
 
-ASUNTO EMAIL:
-[texto]
+Si no hay observaciones relevantes, escribir:
+Sin observaciones
+
+ASUNTO EMAIL (FORMATO ESTRICTO):
+
+Generar EXACTAMENTE en este formato:
+
+[INCOTERM] || OP DROPSHIP || [CLIENTE O DIVISIÓN] || OC [N°] || FLS SO [N°] || PO [N°] (SO [N°]) || PSlip [N°] || [DESCRIPCIÓN DEL ITEM]
+
+REGLAS:
+- No cambiar el orden
+- No agregar texto adicional
+- No resumir campos
+- Usar datos exactos de los documentos
+- Si falta un dato usar: [N/A]
 
 ====================
 REGLAS
