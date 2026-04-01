@@ -99,6 +99,15 @@ FORMATO OBLIGATORIO
 - PSlip:
 
 3. OBSERVACIONES:
+(Notas relevantes. Si no hay, escribir: "Sin observaciones")
+
+FORMATO DE OBSERVACIONES (OBLIGATORIO):
+- Usa viñetas con símbolo "•"
+- Una idea por línea
+- Máximo 5 puntos
+- No usar párrafos largos
+- No repetir información
+- Frases cortas y claras
 
 ASUNTO EMAIL:
 [texto]
